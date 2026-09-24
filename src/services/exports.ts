@@ -67,6 +67,26 @@ function filenameFrom(disposition: string | null, tab: ExportTab): string {
   return `${tab}-${today}.csv`;
 }
 
+function csvValue(value: unknown): string {
+  const text = value == null ? "" : String(value);
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function jsonToCsv(rows: unknown): string {
+  if (!Array.isArray(rows) || rows.length === 0) return "";
+
+  const records = rows.filter(
+    (row): row is Record<string, unknown> => typeof row === "object" && row !== null,
+  );
+  if (records.length === 0) return "";
+
+  const columns = [...new Set(records.flatMap((row) => Object.keys(row)))];
+  return [
+    columns.map(csvValue).join(","),
+    ...records.map((row) => columns.map((column) => csvValue(row[column])).join(",")),
+  ].join("\r\n");
+}
+
 /**
  * Download one tab as a CSV file.
  *
@@ -75,6 +95,25 @@ function filenameFrom(disposition: string | null, tab: ExportTab): string {
  */
 export async function downloadCsv(tab: ExportTab): Promise<void> {
   const res = await fetch(`${BASE}/api/${tab}.csv`, { headers: headers() });
+  if (res.status === 404) {
+    const fallback = await fetch(`${BASE}/api/${tab}`, { headers: headers() });
+    if (!fallback.ok) {
+      const detail = await fallback.text().catch(() => "");
+      throw new Error(`${fallback.status} ${fallback.statusText}${detail ? ` — ${detail}` : ""}`);
+    }
+
+    const csv = jsonToCsv(await fallback.json());
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filenameFrom(null, tab);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return;
+  }
+
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`);
