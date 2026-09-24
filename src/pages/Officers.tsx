@@ -17,6 +17,7 @@ import {
   deleteOfficer as deleteOfficerFromService,
   type OfficerData,
 } from "../services/api";
+import DownloadCsvButton from "../components/common/DownloadCsvButton";
 
 const Officers = () => {
   // =========================
@@ -778,6 +779,11 @@ const Officers = () => {
             <p className="text-sm text-gray-500 mt-1">
               Search and manage registered officers.
             </p>
+
+            {/* CSV download for this tab. Rows come from the same query the table uses. */}
+            <div className="mt-3">
+              <DownloadCsvButton tab="officers" />
+            </div>
 
           </div>
 

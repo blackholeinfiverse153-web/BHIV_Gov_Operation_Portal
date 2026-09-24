@@ -13,6 +13,7 @@ import {
   deleteProject as deleteProjectFromService,
   type ProjectData,
 } from "../services/api";
+import DownloadCsvButton from "../components/common/DownloadCsvButton";
 
 const Projects = () => {
   // =========================
@@ -419,6 +420,11 @@ const Projects = () => {
             <p className="text-sm text-gray-500 mt-1">
               Search and manage registered projects.
             </p>
+
+            {/* CSV download for this tab. Rows come from the same query the table uses. */}
+            <div className="mt-3">
+              <DownloadCsvButton tab="projects" />
+            </div>
           </div>
 
           {/* Search */}

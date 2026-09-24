@@ -100,9 +100,28 @@ const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8090";
  * names nothing useful. With it, the real JSON comes through. It is harmless when talking to localhost, so
  * it is sent unconditionally rather than being something to remember to add later.
  */
-const HEADERS = {
+/**
+ * `X-API-Key` is REQUIRED whenever the deployment sets GOV_OPS_API_KEY.
+ *
+ * Without it every /api/* call returns 401 while /health and /docs keep answering, which looks like a CORS
+ * or tunnel fault and is neither: the preflight succeeds, the request arrives, and the server refuses it.
+ * Measured against the live service on 2026-09-24:
+ *     GET /gov-ops/api/requests  -> 401
+ *     body: "missing or wrong X-API-Key header (this deployment requires one; ask the backend owner)"
+ *
+ * Sent only when configured, because the backend leaves the API OPEN when no key is set and an empty
+ * header is not the same as no header.
+ *
+ * This is a lock, not a login: a VITE_ variable is compiled into the browser bundle, so anyone who opens
+ * devtools on the deployed site can read it. It keeps out whoever scans the address; it does not protect
+ * citizen names, emails and phone numbers from someone holding the app.
+ */
+const HEADERS: Record<string, string> = {
   "Content-Type": "application/json",
   "ngrok-skip-browser-warning": "true",
+  ...(import.meta.env.VITE_GOV_OPS_API_KEY
+    ? { "X-API-Key": import.meta.env.VITE_GOV_OPS_API_KEY }
+    : {}),
 };
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {

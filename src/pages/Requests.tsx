@@ -18,6 +18,7 @@ import {
   type RequestData,
   type RequestStatus,
 } from "../services/api";
+import DownloadCsvButton from "../components/common/DownloadCsvButton";
 
 // =========================
 // REQUESTS COMPONENT
@@ -772,6 +773,11 @@ const Requests = () => {
             <p className="text-sm text-gray-500 mt-1">
               {filteredRequests.length} request(s) found
             </p>
+
+            {/* CSV download for this tab. Rows come from the same query the table uses. */}
+            <div className="mt-3">
+              <DownloadCsvButton tab="requests" />
+            </div>
           </div>
 
           <button

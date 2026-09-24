@@ -28,7 +28,13 @@
  * the name is the server's date, not the viewer's.
  */
 
-const BASE = import.meta.env.VITE_GOV_OPS_BASE;
+// ONE BASE FOR THE WHOLE APP — the same expression `api.ts` uses.
+//
+// This briefly read `import.meta.env.VITE_GOV_OPS_BASE`, which is defined in neither `.env` nor
+// `.env.example`. `BASE` was therefore `undefined`, every request became "undefined/api/citizens.csv",
+// and the browser resolved that against the dev-server origin and 404'd with nothing useful to read.
+// Two variables for one host also lets the CSV quietly point somewhere the rest of the app does not.
+const BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8090";
 
 /** The tabs that can be exported. Same names the backend uses, so a typo is a compile error. */
 export type ExportTab = "citizens" | "officers" | "requests" | "projects";
