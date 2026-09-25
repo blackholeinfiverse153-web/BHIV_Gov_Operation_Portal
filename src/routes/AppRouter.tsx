@@ -10,6 +10,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import RequestDetails from "../pages/RequestDetails";
+import DistrictIntelligence from "../pages/DistrictIntelligence";
 
 const AppRouter = () => {
   return (
@@ -29,6 +30,7 @@ const AppRouter = () => {
           <Route path="/officers" element={<Officers/>} />
           <Route path="/profile" element={ <Profile/>}  />
           <Route path="/settings" element={<Settings/>} />
+          <Route path="/district-intelligence" element={<DistrictIntelligence />} />
 
         </Route>
 

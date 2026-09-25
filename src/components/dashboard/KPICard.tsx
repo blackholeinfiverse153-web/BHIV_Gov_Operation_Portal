@@ -15,28 +15,28 @@ const KPICards = ({ data }: Props) => {
   const cards = [
     {
       title: "Citizens",
-      value: data.citizens,
+      value: data.totalCitizens,
       icon: Users,
       iconBg: "bg-blue-100",
       iconColor: "text-blue-600",
     },
     {
       title: "Projects",
-      value: data.projects,
+      value: data.totalProjects,
       icon: FolderKanban,
       iconBg: "bg-purple-100",
       iconColor: "text-purple-600",
     },
     {
       title: "Requests",
-      value: data.requests,
+      value: data.totalRequests,
       icon: ClipboardList,
       iconBg: "bg-orange-100",
       iconColor: "text-orange-600",
     },
     {
       title: "Officers",
-      value: data.officers,
+      value: data.totalOfficers,
       icon: UserRound,
       iconBg: "bg-green-100",
       iconColor: "text-green-600",

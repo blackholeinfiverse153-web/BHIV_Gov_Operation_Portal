@@ -1,1 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+
+:root {
+	font-family: "DM Sans", "Segoe UI", sans-serif;
+	color: #172033;
+	background: #f4f7fb;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	--portal-ink: #172033;
+	--portal-muted: #65738a;
+	--portal-line: #dce3ec;
+	--portal-surface: #ffffff;
+	--portal-canvas: #f4f7fb;
+	--portal-navy: #11253f;
+	--portal-teal: #0f766e;
+	--portal-teal-soft: #e5f4f1;
+	--portal-amber: #b45309;
+	--portal-shadow: 0 12px 30px rgba(24, 43, 70, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+	min-width: 320px;
+	min-height: 100vh;
+	margin: 0;
+	background: var(--portal-canvas);
+	color: var(--portal-ink);
+}
+
+button, input, select, textarea { font: inherit; }
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+	outline: 3px solid rgba(15, 118, 110, 0.25);
+	outline-offset: 2px;
+}
+
+.portal-main {
+	width: 100%;
+	max-width: 1680px;
+	margin: 0 auto;
+	padding: 32px clamp(18px, 3vw, 48px) 48px;
+}
+
+.portal-main h1, .portal-main h2, .portal-main h3 { letter-spacing: -0.02em; }
+
+.portal-main .bg-white {
+	border-color: var(--portal-line);
+	box-shadow: var(--portal-shadow);
+}
+
+.portal-main input:not([type="checkbox"]),
+.portal-main select,
+.portal-main textarea {
+	min-height: 44px;
+	border-color: var(--portal-line);
+	color: var(--portal-ink);
+	background: #fff;
+	transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.portal-main input:not([type="checkbox"]):focus,
+.portal-main select:focus,
+.portal-main textarea:focus {
+	border-color: var(--portal-teal);
+	box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+	outline: none;
+}
+
+.portal-main table { border-collapse: separate; border-spacing: 0; }
+.portal-main thead th { background: #f7f9fc; color: #52627a; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.portal-main tbody tr { transition: background-color 160ms ease; }
+.portal-main tbody tr:hover { background: #f6fafb; }
+
+@media (max-width: 767px) {
+	.portal-main { padding: 24px 16px 36px; }
+	.portal-main table { min-width: 720px; }
+}

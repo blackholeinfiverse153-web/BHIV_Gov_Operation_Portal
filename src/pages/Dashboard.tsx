@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import KpiCards from "../components/dashboard/KPICard";
 import RecentRequests from "../components/dashboard/RecentRequests";
 import { Link } from "react-router-dom";
+import { ArrowUpRight, Leaf } from "lucide-react";
 
 import {
   getDashboardData,
@@ -196,15 +197,9 @@ const Dashboard = () => {
           DASHBOARD HEADER
       ========================= */}
 
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800">
-          Government Operations Dashboard
-        </h1>
-
-        <p className="text-gray-500 mt-1">
-          Monitor citizens, projects, requests and
-          officers from one central dashboard.
-        </p>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div><p className="text-sm font-semibold uppercase tracking-[0.14em] text-teal-700">Operations overview</p><h1 className="mt-1 text-3xl font-bold text-slate-900">Government Operations Dashboard</h1><p className="mt-2 max-w-2xl text-slate-500">A live view of connected civic operations, requests, projects, citizens, and officers.</p></div>
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-right shadow-sm"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Data mode</p><p className="mt-1 text-sm font-semibold text-emerald-700">Connected API records</p></div>
       </div>
 
       {/* =========================
@@ -212,6 +207,8 @@ const Dashboard = () => {
       ========================= */}
 
       <KpiCards data={dashboardData} />
+
+      <section className="flex flex-col gap-4 rounded-2xl border border-teal-200 bg-[linear-gradient(115deg,#ecf9f6,#ffffff)] p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-700 text-white"><Leaf size={21} /></div><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-700">Agriculture intelligence</p><h2 className="mt-1 text-lg font-semibold text-slate-900">Explore source-aware district evidence</h2><p className="mt-1 max-w-2xl text-sm text-slate-600">Production, market, weather, water, and storage signals are queried from the live AIAIC service only when a district and crop are selected.</p></div></div><Link to="/district-intelligence" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-800">Open workspace <ArrowUpRight size={16} /></Link></section>
 
       {/* =========================
           QUICK OVERVIEW

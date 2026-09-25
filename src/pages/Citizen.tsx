@@ -7,6 +7,8 @@ import {
   Building2,
   X,
   Eye,
+  LoaderCircle,
+  RefreshCw,
 } from "lucide-react";
 
 import {
@@ -64,7 +66,8 @@ const Citizen = () => {
   };
 
   useEffect(() => {
-    void reloadCitizens();
+    const timer = window.setTimeout(() => { void reloadCitizens(); }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   // =========================
@@ -365,6 +368,14 @@ const Citizen = () => {
   // =========================
   // UI
   // =========================
+
+  if (loading) {
+    return <div className="space-y-6"><div><p className="text-sm font-semibold uppercase tracking-[0.14em] text-teal-700">People registry</p><h1 className="mt-1 text-3xl font-bold text-slate-900">Citizen Management</h1><p className="mt-2 text-slate-500">Loading the citizen registry from the connected service.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"><div className="flex items-center gap-3 text-slate-600"><LoaderCircle className="animate-spin text-teal-700" size={20} /> Loading citizen records...</div><div className="mt-6 space-y-3"><div className="h-12 animate-pulse rounded-xl bg-slate-100" /><div className="h-12 animate-pulse rounded-xl bg-slate-100" /><div className="h-12 animate-pulse rounded-xl bg-slate-100" /></div></div></div>;
+  }
+
+  if (loadError) {
+    return <div className="rounded-2xl border border-red-200 bg-red-50 p-8"><h1 className="text-2xl font-bold text-red-900">Citizen records unavailable</h1><p className="mt-2 text-sm text-red-800">{loadError}</p><button type="button" onClick={() => void reloadCitizens()} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white"><RefreshCw size={16} /> Retry</button></div>;
+  }
 
   return (
     <div className="space-y-6 w-full">
