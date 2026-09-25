@@ -1,64 +1,58 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-// Request Data Type
-type RequestData = {
-  id: number;
-  requestId: string;
-  citizenName: string;
-  requestType: string;
-  department: string;
-  status: string;
-  description: string;
-};
+import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
+import { getRequests, type RequestData } from "../services/api";
 
 const RequestDetails = () => {
-  // URL मधून Request ID मिळवतो
   const { id } = useParams();
-
-  // Requests page वर परत जाण्यासाठी
   const navigate = useNavigate();
+  const [request, setRequest] = useState<RequestData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // sessionStorage मधून Requests घेतो
-  const savedRequests = sessionStorage.getItem(
-    "government_requests"
-  );
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(() => {
+      const loadRequest = async () => {
+        setLoading(true);
+        setError("");
+        setRequest(null);
+        try {
+          const requests = await getRequests();
+          if (!active) return;
+          const match = id
+            ? requests.find((item) => item.requestId === id || item.id === id)
+            : undefined;
+          setRequest(match ?? null);
+        } catch (reason) {
+          if (active) setError(reason instanceof Error ? reason.message : "Unable to load request details.");
+        } finally {
+          if (active) setLoading(false);
+        }
+      };
+      void loadRequest();
+    }, 0);
 
-  // Saved Requests parse करतो
-  let requests: RequestData[] = [];
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [id]);
 
-  if (savedRequests) {
-    try {
-      requests = JSON.parse(savedRequests);
-    } catch {
-      requests = [];
-    }
+  if (loading) {
+    return <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"><div className="flex items-center gap-3 text-slate-600"><LoaderCircle className="animate-spin text-teal-700" size={21} /> Loading request details...</div></div>;
   }
 
-  // URL मधील Request ID match करतो
-  const request = requests.find(
-    (item) => item.requestId === id
-  );
+  if (error) {
+    return <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-red-900"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 shrink-0" size={21} /><div><h1 className="text-xl font-bold">Unable to load request details</h1><p className="mt-2 text-sm">{error}</p><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={() => window.location.reload()} className="inline-flex items-center gap-2 rounded-lg bg-red-700 px-4 py-2.5 text-sm font-semibold text-white"><RefreshCw size={16} /> Retry</button><button type="button" onClick={() => navigate("/requests")} className="rounded-lg border border-red-300 px-4 py-2.5 text-sm font-semibold text-red-800">Back to Requests</button></div></div></div></div>;
+  }
 
-  // Request सापडली नाही तर message दाखवतो
   if (!request) {
     return (
-      <div className="p-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-red-600">
-            Request Not Found
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            The requested record could not be found.
-          </p>
-
-          <button
-            onClick={() => navigate("/requests")}
-            className="mt-5 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-800"
-          >
-            Back to Requests
-          </button>
-        </div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-slate-900">Request Not Found</h1>
+        <p className="mt-2 text-slate-500">No request with reference <span className="font-semibold text-slate-700">{id || "the supplied ID"}</span> was returned by the connected service.</p>
+        <button type="button" onClick={() => navigate("/requests")} className="mt-5 rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900">Back to Requests</button>
       </div>
     );
   }
