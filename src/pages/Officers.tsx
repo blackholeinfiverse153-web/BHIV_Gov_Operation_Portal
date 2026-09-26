@@ -20,6 +20,9 @@ import {
   type OfficerData,
 } from "../services/api";
 import DownloadCsvButton from "../components/common/DownloadCsvButton";
+import DepartmentSelect from "../components/common/DepartmentSelect";
+import { MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1 } from "../config/departmentRegistry";
+import { getVerifiedDesignations } from "../config/officerDesignationRegistry";
 
 const Officers = () => {
   // =========================
@@ -30,7 +33,51 @@ const Officers = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
+  const [subDepartmentId, setSubDepartmentId] = useState("");
+  const [divisionId, setDivisionId] = useState("");
   const [designation, setDesignation] = useState("");
+  const [serviceId, setServiceId] = useState("");
+
+  const selectedDepartment = MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+    (item) => item.departmentName === department,
+  );
+  const availableSubDepartments = selectedDepartment?.subDepartments ?? [];
+  const selectedSubDepartment = availableSubDepartments.find(
+    (item) => item.subDepartmentId === subDepartmentId,
+  );
+  const availableDivisions = selectedSubDepartment?.divisions ?? [];
+  const selectedDivision = availableDivisions.find(
+    (item) => item.divisionId === divisionId,
+  );
+  const availableDesignations = selectedDepartment
+    ? getVerifiedDesignations(
+        selectedDepartment.departmentId,
+        subDepartmentId,
+        divisionId,
+      )
+    : [];
+  const availableServices = selectedDivision?.services ?? selectedSubDepartment?.services ?? [];
+
+  const handleDepartmentChange = (newDept: string) => {
+    setDepartment(newDept);
+    setSubDepartmentId("");
+    setDivisionId("");
+    setDesignation("");
+    setServiceId("");
+  };
+
+  const handleSubDepartmentChange = (newSubDeptId: string) => {
+    setSubDepartmentId(newSubDeptId);
+    setDivisionId("");
+    setDesignation("");
+    setServiceId("");
+  };
+
+  const handleDivisionChange = (newDivId: string) => {
+    setDivisionId(newDivId);
+    setDesignation("");
+    setServiceId("");
+  };
 
   // =========================
   // SEARCH
@@ -89,7 +136,10 @@ const Officers = () => {
     setEmail("");
     setPhone("");
     setDepartment("");
+    setSubDepartmentId("");
+    setDivisionId("");
     setDesignation("");
+    setServiceId("");
     setEditId(null);
   };
 
@@ -115,43 +165,6 @@ const Officers = () => {
     const maxNumber = Math.max(...numbers);
 
     return `OFF-${String(maxNumber + 1).padStart(3, "0")}`;
-  };
-
-  // =========================
-  // VALID DEPARTMENT /
-  // DESIGNATION COMBINATIONS
-  // =========================
-
-  const validCombinations: Record<string, string[]> = {
-    Revenue: [
-      "Collector",
-      "Tehsildar",
-      "Revenue Officer",
-    ],
-
-    Health: [
-      "Health Officer",
-    ],
-
-    Education: [
-      "Education Officer",
-    ],
-
-    Transport: [
-      "Transport Officer",
-    ],
-
-    Police: [
-      "Police Inspector",
-    ],
-
-    Municipal: [
-      "Municipal Officer",
-    ],
-
-    "Water Supply": [
-      "Water Officer",
-    ],
   };
 
   // =========================
@@ -195,14 +208,28 @@ const Officers = () => {
       return;
     }
 
-    // Department / designation validation
+    if (availableSubDepartments.length > 0 && !subDepartmentId) {
+      alert("Please select a valid sub-department.");
+      return;
+    }
+
+    if (availableDivisions.length > 0 && !divisionId) {
+      alert("Please select a valid division / section.");
+      return;
+    }
+
+    const existingOfficer = editId === null
+      ? undefined
+      : officers.find((officer) => officer.id === editId);
+    const unchangedLegacyDesignation =
+      existingOfficer?.department === department &&
+      existingOfficer.designation === designation;
+
     if (
-      !validCombinations[department] ||
-      !validCombinations[department].includes(designation)
+      !availableDesignations.some((item) => item.designationName === designation) &&
+      !unchangedLegacyDesignation
     ) {
-      alert(
-        "Selected designation is not valid for the selected department."
-      );
+      alert("Please select a verified designation from the available options.");
       return;
     }
 
@@ -372,6 +399,27 @@ const Officers = () => {
     setPhone(officer.phone);
     setDepartment(officer.department);
     setDesignation(officer.designation);
+
+    const dept = MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+      (d) => d.departmentName === officer.department,
+    );
+    if (dept) {
+      const allDesignations = getVerifiedDesignations(dept.departmentId);
+      const match = allDesignations.find((d) => d.designationName === officer.designation);
+      if (match?.subDepartmentId) {
+        setSubDepartmentId(match.subDepartmentId);
+        if (match.divisionId) {
+          setDivisionId(match.divisionId);
+        }
+      } else {
+        setSubDepartmentId("");
+        setDivisionId("");
+      }
+    } else {
+      setSubDepartmentId("");
+      setDivisionId("");
+    }
+    setServiceId("");
     setEditId(id);
 
     window.scrollTo({
@@ -651,85 +699,137 @@ const Officers = () => {
                 Department
               </label>
 
-              <select
+              <DepartmentSelect
                 value={department}
-                onChange={(e) => {
-                  setDepartment(e.target.value);
-                  setDesignation("");
-                }}
+                onChange={handleDepartmentChange}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+
+            </div>
+
+            {/* SUB-DEPARTMENT */}
+
+            <div>
+
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Sub-Department
+              </label>
+
+              <select
+                aria-label="Sub-Department"
+                value={subDepartmentId}
+                onChange={(event) => handleSubDepartmentChange(event.target.value)}
+                disabled={!department || availableSubDepartments.length === 0}
+                required={availableSubDepartments.length > 0}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-
                 <option value="">
-                  Select Department
+                  {!department
+                    ? "Select Department first"
+                    : availableSubDepartments.length === 0
+                    ? "No verified sub-department available"
+                    : "Select relevant sub-department"}
                 </option>
+                {availableSubDepartments.map((item) => (
+                  <option key={item.subDepartmentId} value={item.subDepartmentId}>
+                    {item.subDepartmentName}
+                  </option>
+                ))}
+              </select>
 
-                <option value="Revenue">
-                  Revenue
+            </div>
+
+            {/* DIVISION / SECTION */}
+
+            <div>
+
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Division / Section
+              </label>
+
+              <select
+                aria-label="Division / Section"
+                value={divisionId}
+                onChange={(event) => handleDivisionChange(event.target.value)}
+                disabled={!subDepartmentId || availableDivisions.length === 0}
+                required={availableDivisions.length > 0}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {!subDepartmentId
+                    ? "Select Sub-Department first"
+                    : availableDivisions.length === 0
+                    ? "No verified division/section available"
+                    : "Select relevant division/section"}
                 </option>
-
-                <option value="Health">
-                  Health
-                </option>
-
-                <option value="Education">
-                  Education
-                </option>
-
-                <option value="Transport">
-                  Transport
-                </option>
-
-                <option value="Police">
-                  Police
-                </option>
-
-                <option value="Municipal">
-                  Municipal
-                </option>
-
-                <option value="Water Supply">
-                  Water Supply
-                </option>
-
+                {availableDivisions.map((item) => (
+                  <option key={item.divisionId} value={item.divisionId}>
+                    {item.divisionName}
+                  </option>
+                ))}
               </select>
 
             </div>
 
             {/* DESIGNATION */}
 
-            <div className="md:col-span-2">
+            <div>
 
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Designation
               </label>
 
               <select
+                aria-label="Designation"
                 value={designation}
-                onChange={(e) =>
-                  setDesignation(e.target.value)
-                }
-                disabled={!department}
+                onChange={(e) => setDesignation(e.target.value)}
+                disabled={!divisionId || availableDesignations.length === 0}
+                required
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-
                 <option value="">
-                  {department
-                    ? "Select Designation"
-                    : "Select Department First"}
+                  {!divisionId
+                    ? "Select Division / Section first"
+                    : availableDesignations.length === 0
+                    ? "No verified designation available"
+                    : "Select relevant designation"}
                 </option>
+                {availableDesignations.map((item) => (
+                  <option key={item.designationId} value={item.designationName}>
+                    {item.designationName}
+                  </option>
+                ))}
+              </select>
 
-                {(validCombinations[department] || []).map(
-                  (item) => (
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-                  )
-                )}
+            </div>
 
+            {/* SERVICE / FUNCTION */}
+
+            <div className="md:col-span-2">
+
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Service / Function
+              </label>
+
+              <select
+                aria-label="Service / Function"
+                value={serviceId}
+                onChange={(e) => setServiceId(e.target.value)}
+                disabled={!divisionId || availableServices.length === 0}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {!divisionId
+                    ? "Select Division / Section first"
+                    : availableServices.length === 0
+                    ? "No verified service available"
+                    : "Select relevant service"}
+                </option>
+                {availableServices.map((item) => (
+                  <option key={item.serviceId} value={item.serviceId}>
+                    {item.serviceName}
+                  </option>
+                ))}
               </select>
 
             </div>

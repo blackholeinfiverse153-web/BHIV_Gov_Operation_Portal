@@ -37,11 +37,11 @@ The main objectives of this project are:
 
 ### Authentication / Login
 
-- Login interface
-- Client-side navigation to the dashboard
-- Frontend-focused authentication flow
+- BHIV Core shared-session authentication using HttpOnly cookies
+- Tenant, roles, permissions, and Gov Ops app access loaded from BHIV Core
+- Protected portal routes and centralized login, registration, and logout
 
-> Backend authentication and production identity management are outside the current evaluation scope.
+Configure `VITE_AUTH_API_BASE_URL` for the BHIV Core API and `VITE_AUTH_LOGIN_URL` for its login/register UI. In production, allow the portal origin in the auth server's credentialed CORS configuration and host both applications on the shared cookie domain over HTTPS.
 
 ### Dashboard
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DepartmentSelect from "../components/common/DepartmentSelect";
 
 const Profile = () => {
 
@@ -6,7 +7,7 @@ const Profile = () => {
   const [name, setName] = useState("Riddhi Khatate");
   const [email, setEmail] = useState("riddhi@example.com");
   const [phone, setPhone] = useState("");
-  const [department, setDepartment] = useState("Operations");
+  const [department, setDepartment] = useState("");
 
   return (
     <div className="space-y-6">
@@ -100,31 +101,11 @@ const Profile = () => {
               Department
             </label>
 
-            <select
+            <DepartmentSelect
               value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              onChange={setDepartment}
               className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Operations">
-                Operations
-              </option>
-
-              <option value="Revenue">
-                Revenue
-              </option>
-
-              <option value="Health">
-                Health
-              </option>
-
-              <option value="Education">
-                Education
-              </option>
-
-              <option value="Transport">
-                Transport
-              </option>
-            </select>
+            />
           </div>
 
         </div>

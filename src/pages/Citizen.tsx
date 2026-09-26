@@ -19,6 +19,13 @@ import {
   type CitizenData,
 } from "../services/api";
 import DownloadCsvButton from "../components/common/DownloadCsvButton";
+import DepartmentSelect from "../components/common/DepartmentSelect";
+import DepartmentHierarchyFields from "../components/common/DepartmentHierarchyFields";
+import {
+  MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1,
+  validateDepartmentPath,
+  type DepartmentPathSelection,
+} from "../config/departmentRegistry";
 
 const Citizen = () => {
   // =========================
@@ -29,6 +36,12 @@ const Citizen = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [department, setDepartment] = useState("");
+  const [departmentPath, setDepartmentPath] = useState<DepartmentPathSelection>({
+    subDepartmentId: "",
+    divisionId: "",
+    sectionId: "",
+    serviceId: "",
+  });
 
   // =========================
   // SEARCH
@@ -92,6 +105,12 @@ const Citizen = () => {
     setEmail("");
     setPhone("");
     setDepartment("");
+    setDepartmentPath({
+      subDepartmentId: "",
+      divisionId: "",
+      sectionId: "",
+      serviceId: "",
+    });
     setEditId(null);
   };
 
@@ -132,6 +151,19 @@ const Citizen = () => {
 
     if (!phoneRegex.test(phone.trim())) {
       alert("Please enter a valid 10-digit Indian phone number.");
+      return;
+    }
+
+    const selectedDepartment = MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+      (item) => item.departmentName === department,
+    );
+    const hierarchyError = validateDepartmentPath(selectedDepartment, departmentPath);
+    if (hierarchyError) {
+      alert(hierarchyError);
+      return;
+    }
+    if (Object.values(departmentPath).some(Boolean)) {
+      alert("The connected citizen API does not yet accept sub-department, division, section, or service identifiers.");
       return;
     }
 
@@ -567,51 +599,29 @@ const Citizen = () => {
                 Department
               </label>
 
-              <select
+              <DepartmentSelect
                 value={department}
-                onChange={(e) =>
-                  setDepartment(e.target.value)
-                }
+                onChange={(value) => {
+                  setDepartment(value);
+                  setDepartmentPath({
+                    subDepartmentId: "",
+                    divisionId: "",
+                    sectionId: "",
+                    serviceId: "",
+                  });
+                }}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
+              />
 
-                <option value="">
-                  Select Department
-                </option>
-
-                <option value="Revenue">
-                  Revenue
-                </option>
-
-                <option value="Health">
-                  Health
-                </option>
-
-                <option value="Education">
-                  Education
-                </option>
-
-                <option value="Transport">
-                  Transport
-                </option>
-
-                <option value="Police">
-                  Police
-                </option>
-
-                <option value="Municipal">
-                  Municipal
-                </option>
-
-                <option value="Water Supply">
-                  Water Supply
-                </option>
-
-                <option value="Electricity">
-                  Electricity
-                </option>
-
-              </select>
+              <div className="mt-3">
+                <DepartmentHierarchyFields
+                  department={MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+                    (item) => item.departmentName === department,
+                  )}
+                  selection={departmentPath}
+                  onChange={setDepartmentPath}
+                />
+              </div>
 
             </div>
 

@@ -1,82 +1,60 @@
-import { useNavigate } from 'react-router-dom'
-const Login = () => {
-  const navigate =useNavigate();
-  const handleLogin= ()=>{
-    navigate("/dashboard")
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/auth-context";
+import { getBhivAuthUrl } from "../services/auth";
+
+type LoginProps = {
+  mode?: "login" | "register";
+};
+
+const Login = ({ mode = "login" }: LoginProps) => {
+  const auth = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  let authUrl = "";
+  let error = auth.status === "error" ? auth.error : "";
+
+  if (auth.status === "unauthenticated" || auth.status === "denied") {
+    const returnTo = new URLSearchParams(location.search).get("returnTo") || "/dashboard";
+    try {
+      authUrl = getBhivAuthUrl(mode, returnTo);
+    } catch (authError) {
+      error = authError instanceof Error ? authError.message : "Could not open BHIV Core authentication.";
+    }
   }
+
+  useEffect(() => {
+    if (auth.status === "checking") return;
+    if (auth.status === "authenticated") {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+    if (authUrl) window.location.replace(authUrl);
+  }, [auth.status, authUrl, navigate]);
+
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-
-        {/* Heading */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">
-            Government Operations Portal
-          </h1>
-
-          <p className="text-slate-500 mt-2">
-            Secure Government Management System
-          </p>
-        </div>
-
-        {/* Login Form */}
-        <form>
-
-          {/* Email */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Email Address
-            </label>
-
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Password */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Password
-            </label>
-
-            <input
-              type="password"
-              placeholder="Enter your password"
-              className="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Remember & Forgot */}
-          <div className="flex justify-between items-center mb-6">
-
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <input type="checkbox" />
-              Remember Me
-            </label>
-
-            <a
-              href="#"
-              className="text-blue-600 text-sm hover:underline"
-            >
-              Forgot Password?
-            </a>
-
-          </div>
-
-          {/* Button */}
+    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
+      <section className="max-w-md text-center">
+        <h1 className="text-2xl font-semibold text-slate-900">BHIV Core authentication</h1>
+        <p className="mt-3 text-slate-600">
+          {error || "Redirecting to the shared BHIV Core session..."}
+        </p>
+        {authUrl && (
+          <a className="mt-5 inline-block font-medium text-teal-700 underline" href={authUrl}>
+            Continue to BHIV Core
+          </a>
+        )}
+        {auth.status === "error" && (
           <button
-            onClick={handleLogin}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+            type="button"
+            onClick={() => void auth.refreshSession()}
+            className="mt-5 block w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white"
           >
-            Sign In
+            Retry session check
           </button>
-
-        </form>
-
-      </div>
-    </div>
+        )}
+      </section>
+    </main>
   );
 };
 

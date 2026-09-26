@@ -19,6 +19,13 @@ import {
   type RequestStatus,
 } from "../services/api";
 import DownloadCsvButton from "../components/common/DownloadCsvButton";
+import DepartmentSelect from "../components/common/DepartmentSelect";
+import DepartmentHierarchyFields from "../components/common/DepartmentHierarchyFields";
+import {
+  MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1,
+  validateDepartmentPath,
+  type DepartmentPathSelection,
+} from "../config/departmentRegistry";
 
 // =========================
 // REQUESTS COMPONENT
@@ -34,6 +41,12 @@ const Requests = () => {
   const [citizenName, setCitizenName] = useState("");
   const [requestType, setRequestType] = useState("");
   const [department, setDepartment] = useState("");
+  const [departmentPath, setDepartmentPath] = useState<DepartmentPathSelection>({
+    subDepartmentId: "",
+    divisionId: "",
+    sectionId: "",
+    serviceId: "",
+  });
   const [status, setStatus] = useState<RequestStatus | "">("");
   const [description, setDescription] = useState("");
 
@@ -192,6 +205,19 @@ const Requests = () => {
       return;
     }
 
+    const selectedDepartment = MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+      (item) => item.departmentName === department,
+    );
+    const hierarchyError = validateDepartmentPath(selectedDepartment, departmentPath);
+    if (hierarchyError) {
+      alert(hierarchyError);
+      return;
+    }
+    if (Object.values(departmentPath).some(Boolean)) {
+      alert("The connected request API does not yet accept sub-department, division, section, or service identifiers.");
+      return;
+    }
+
     const isEditing = editId !== null;
 
     // =========================
@@ -326,6 +352,12 @@ const Requests = () => {
     setCitizenName("");
     setRequestType("");
     setDepartment("");
+    setDepartmentPath({
+      subDepartmentId: "",
+      divisionId: "",
+      sectionId: "",
+      serviceId: "",
+    });
     setStatus("");
     setDescription("");
     setEditId(null);
@@ -605,97 +637,36 @@ const Requests = () => {
             className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <select
+          <input
+            type="text"
             value={requestType}
-            onChange={(e) =>
-              setRequestType(
-                e.target.value
-              )
-            }
+            onChange={(e) => setRequestType(e.target.value)}
+            placeholder="Enter request type"
+            aria-label="Request Type or Service"
             className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          />
 
-            <option value="">
-              Select Request Type
-            </option>
-
-            <option value="Birth Certificate">
-              Birth Certificate
-            </option>
-
-            <option value="Death Certificate">
-              Death Certificate
-            </option>
-
-            <option value="Income Certificate">
-              Income Certificate
-            </option>
-
-            <option value="Residence Certificate">
-              Residence Certificate
-            </option>
-
-            <option value="Caste Certificate">
-              Caste Certificate
-            </option>
-
-            <option value="Property Tax">
-              Property Tax
-            </option>
-
-            <option value="Water Connection">
-              Water Connection
-            </option>
-
-            <option value="Other">
-              Other
-            </option>
-
-          </select>
-
-          <select
+          <DepartmentSelect
             value={department}
-            onChange={(e) =>
-              setDepartment(
-                e.target.value
-              )
-            }
+            onChange={(value) => {
+              setDepartment(value);
+              setDepartmentPath({
+                subDepartmentId: "",
+                divisionId: "",
+                sectionId: "",
+                serviceId: "",
+              });
+            }}
             className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          />
 
-            <option value="">
-              Select Department
-            </option>
-
-            <option value="Revenue">
-              Revenue
-            </option>
-
-            <option value="Health">
-              Health
-            </option>
-
-            <option value="Education">
-              Education
-            </option>
-
-            <option value="Transport">
-              Transport
-            </option>
-
-            <option value="Police">
-              Police
-            </option>
-
-            <option value="Municipal">
-              Municipal
-            </option>
-
-            <option value="Water Supply">
-              Water Supply
-            </option>
-
-          </select>
+          <DepartmentHierarchyFields
+            department={MAHARASHTRA_GOV_DEPARTMENT_REGISTRY_V1.departments.find(
+              (item) => item.departmentName === department,
+            )}
+            selection={departmentPath}
+            onChange={setDepartmentPath}
+          />
 
           <select
             value={status}
@@ -827,49 +798,12 @@ const Requests = () => {
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
 
-            <select
+            <DepartmentSelect
               value={departmentFilter}
-              onChange={(e) =>
-                setDepartmentFilter(
-                  e.target.value
-                )
-              }
+              onChange={setDepartmentFilter}
+              placeholder="All Departments"
               className="w-full border border-gray-300 rounded-lg p-3 pl-10 outline-none focus:ring-2 focus:ring-blue-500"
-            >
-
-              <option value="">
-                All Departments
-              </option>
-
-              <option value="Revenue">
-                Revenue
-              </option>
-
-              <option value="Health">
-                Health
-              </option>
-
-              <option value="Education">
-                Education
-              </option>
-
-              <option value="Transport">
-                Transport
-              </option>
-
-              <option value="Police">
-                Police
-              </option>
-
-              <option value="Municipal">
-                Municipal
-              </option>
-
-              <option value="Water Supply">
-                Water Supply
-              </option>
-
-            </select>
+            />
 
           </div>
 

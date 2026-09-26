@@ -125,7 +125,11 @@ const HEADERS: Record<string, string> = {
 };
 
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: HEADERS, ...init });
+  const res = await fetch(`${BASE}${path}`, {
+    credentials: "include",
+    headers: HEADERS,
+    ...init,
+  });
   if (!res.ok) {
     // Surface the server's own reason — 409 "already exists" and 422 "not a valid email address" are both
     // things the user can act on. Swallowing them here is how a form silently does nothing.

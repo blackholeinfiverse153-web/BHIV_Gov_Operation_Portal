@@ -1,6 +1,6 @@
 # Current Architecture Map
 
-Status: Phase 0 inspection only. No runtime architecture changes were made for the multi-tenant task.
+Status: Department Registry Phase 1 is implemented as a source-backed configuration module; authentication, tenant context, and authorisation remain unimplemented.
 
 ## Current Structure
 
@@ -18,6 +18,8 @@ src/
   components/common/         loaders, errors, CSV export, search, buttons
   components/ui/             Mostly empty placeholder UI files
   services/api.ts            Gov Ops HTTP client and CRUD types
+  config/departmentRegistry.ts Typed organisation registry and Maharashtra V1 data
+  components/common/DepartmentSelect.tsx Shared registry-driven department control
   services/districtIntelligence.ts AIAIC catalog/unified client
   services/aqiaicPlant.ts    AIAIC plant status/analysis client
   services/exports.ts        CSV export client
@@ -40,7 +42,8 @@ Implemented or partially implemented:
 
 Not implemented:
 
-- Platform users, organisations, departments, teams, roles, permissions.
+- Platform users, teams, roles, and permissions.
+- Complete canonical department data or verified sub-department/service hierarchy. See `docs/department_registry.md`.
 - Workflows, tasks, outcomes, audit/replay, or feedback records.
 - Tenant context, tenant switching, tenant-aware routing, or tenant-aware API headers.
 
@@ -75,7 +78,8 @@ The service clients expose transport errors to pages. Pages generally implement 
 ## Static, Mock, and Local-Only Data
 
 - No operational mock dataset was found under `src/` during this inspection.
-- Login identity, profile fields, sidebar identity labels, and form option lists are static frontend values.
+- Login identity, profile fields, and sidebar identity labels are static frontend values.
+- Department selectors use the Maharashtra RTI Online-sourced V1 subset; request types and officer designations are user-entered because no authoritative catalogs are integrated.
 - `RequestDetails.tsx` reads `sessionStorage` rather than using a verified request-detail API contract.
 - Existing comments in the API/page files still describe former localStorage adapters and should be reconciled during documentation cleanup.
 - Environment files contain configuration names only in `.env.example`; `.env` is local and must not be committed.
@@ -119,6 +123,10 @@ There is no route guard, tenant segment, organisation context, permission-aware 
 7. Consume Gauri/Harsha canonical intelligence outputs through services; do not recreate calculations in React.
 8. Add contract-focused tests, then update deployment variables and CI/CD documentation with Kaushalendra.
 
-## Phase 1 Boundary
+## Department Registry Phase 1
+
+The portal uses a typed, organisation-configurable department registry. The current Maharashtra configuration contains only department labels listed in the official RTI Online public-authority directory; unpublished hierarchy and codes remain empty. Request APIs continue to receive the existing department string. See `docs/department_registry.md` for provenance, unknown fields, and the backend contract needed before hierarchical request routing.
+
+## Authentication Boundary
 
 Smallest safe implementation after team confirmation: introduce an adapter/interface layer for authentication, tenant identity, and Rudra decisions; add a protected application shell that preserves the existing routes in a compatibility mode; and document explicit blocked states when those services are unavailable. Do not invent endpoint paths, token formats, tenant headers, roles, or permission payloads.

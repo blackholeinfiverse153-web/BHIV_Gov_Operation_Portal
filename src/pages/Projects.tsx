@@ -16,6 +16,7 @@ import {
   type ProjectData,
 } from "../services/api";
 import DownloadCsvButton from "../components/common/DownloadCsvButton";
+import DepartmentSelect from "../components/common/DepartmentSelect";
 
 const Projects = () => {
   // =========================
@@ -294,45 +295,11 @@ const Projects = () => {
                 Department
               </label>
 
-              <select
+              <DepartmentSelect
                 value={department}
-                onChange={(e) =>
-                  setDepartment(e.target.value)
-                }
+                onChange={setDepartment}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">
-                  Select Department
-                </option>
-
-                <option value="Revenue">
-                  Revenue
-                </option>
-
-                <option value="Health">
-                  Health
-                </option>
-
-                <option value="Education">
-                  Education
-                </option>
-
-                <option value="Transport">
-                  Transport
-                </option>
-
-                <option value="Police">
-                  Police
-                </option>
-
-                <option value="Municipal">
-                  Municipal
-                </option>
-
-                <option value="Water Supply">
-                  Water Supply
-                </option>
-              </select>
+              />
             </div>
 
             {/* Budget */}

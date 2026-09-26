@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+import AuthProvider from "../contexts/AuthContext";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import Citizen from "../pages/Citizen";
@@ -15,26 +17,29 @@ import DistrictIntelligence from "../pages/DistrictIntelligence";
 const AppRouter = () => {
   return (
     <BrowserRouter>
-      <Routes>
+      <AuthProvider>
+        <Routes>
 
-        {/* Login Page */}
-        <Route path="/" element={<Login />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Login mode="register" />} />
 
-        {/* Dashboard Layout */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/citizens" element={<Citizen />} />
-          <Route path="/projects" element={<Projects/>}/>
-          <Route path="/requests" element={<Requests/>} />
-          <Route path="/requests/:id" element={<RequestDetails />} />
-          <Route path="/officers" element={<Officers/>} />
-          <Route path="/profile" element={ <Profile/>}  />
-          <Route path="/settings" element={<Settings/>} />
-          <Route path="/district-intelligence" element={<DistrictIntelligence />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/citizens" element={<Citizen />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/requests" element={<Requests />} />
+              <Route path="/requests/:id" element={<RequestDetails />} />
+              <Route path="/officers" element={<Officers />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/district-intelligence" element={<DistrictIntelligence />} />
+            </Route>
+          </Route>
 
-        </Route>
-
-      </Routes>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

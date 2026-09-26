@@ -1,24 +1,41 @@
 import { test, expect } from "@playwright/test";
 
 test("Complete request creation flow", async ({ page }) => {
-  // 1. Open Login page
+  await page.route("**/api/auth/sso/session**", async (route) => {
+    await route.fulfill({ json: { authenticated: true } });
+  });
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({
+      json: {
+        user: {
+          user_id: "e2e-user",
+          email: "test@gov.in",
+          tenant_id: "e2e-tenant",
+          roles: ["operator"],
+          permissions: [],
+          allowedApps: ["gov-ops"],
+        },
+      },
+    });
+  });
+
+  await page.route("**/api/requests", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: [] });
+      return;
+    }
+
+    const request = route.request().postDataJSON();
+    await route.fulfill({
+      status: 201,
+      json: { ...request, id: "test-request-1" },
+    });
+  });
+
+  // 1. Open the portal with a valid mocked BHIV Core session.
   await page.goto("/");
 
-  // 2. Fill Login form
-  await page
-    .getByPlaceholder("Enter your email")
-    .fill("test@gov.in");
-
-  await page
-    .getByPlaceholder("Enter your password")
-    .fill("Test@123");
-
-  // 3. Click Sign In
-  await page
-    .getByRole("button", { name: "Sign In" })
-    .click();
-
-  // 4. Verify Dashboard opened
+  // 2. Verify the protected dashboard opened.
   await expect(page).toHaveURL(/\/dashboard/);
 
   // 5. Open Requests page
@@ -38,22 +55,21 @@ test("Complete request creation flow", async ({ page }) => {
     .getByPlaceholder("Citizen Name")
     .fill("E2E Test Citizen");
 
-  // Request Type
+  // Request type is free text until an authoritative service catalog is available.
   await page
-    .locator("select")
-    .nth(0)
-    .selectOption("Birth Certificate");
+    .getByRole("textbox", { name: "Request Type or Service" })
+    .fill("E2E test request");
 
   // Department
   await page
     .locator("select")
-    .nth(1)
-    .selectOption("Revenue");
+    .nth(0)
+    .selectOption({ label: "REVENUE DEPARTMENT" });
 
   // Status
   await page
     .locator("select")
-    .nth(2)
+    .nth(1)
     .selectOption("Pending");
 
   // Description
@@ -76,8 +92,8 @@ test("Complete request creation flow", async ({ page }) => {
 
   // 11. Verify request details inside the same row
   await expect(newRow).toContainText("E2E Test Citizen");
-  await expect(newRow).toContainText("Birth Certificate");
-  await expect(newRow).toContainText("Revenue");
+  await expect(newRow).toContainText("E2E test request");
+  await expect(newRow).toContainText("REVENUE DEPARTMENT");
   await expect(newRow).toContainText("Pending");
   await expect(newRow).toContainText(
     "E2E testing request for verification"
